@@ -1,0 +1,1753 @@
+---
+output: 
+  html_document:
+    toc: true
+    toc_depth: 4
+    number_sections: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: false
+    df_print: paged
+    code_folding: show
+---
+<center> <h4> UAS Pengantar Statistika 2020 </h4> </center>
+<center> <h4> by:  </h4> </center>
+<center> <h4> Tim Dosen Pengantar Statistika </h4> </center>
+
+
+
+```{r}
+#setwd("G:/My Drive/Pendidikan/Pengantar Statistika/UAS")
+getwd()
+data.karet <- read.csv("karet.csv")
+data.bara <- read.csv("batubara.csv")
+data.tpt <- read.csv("TPT.csv")
+data.heart <- read.csv("heart_failure_clinical_records_dataset.csv")
+data.math <- read.csv("student-mat.csv")
+data.diabet <- read.csv("diabetes_data_upload.csv")
+data.estate <- read.csv("Real_estate_valuation_data_set.csv")
+data.hr <- read.csv("HR_Case_Study.csv")
+data.insurance <- read.csv("insurance.csv")
+data.sales <- read.csv("supermarket_sales.csv")
+data.wine <- read.csv("winequality-red.csv")
+```
+
+```{r}
+library(pastecs)
+library(dplyr)
+
+alpha <- c(0.01, 0.05)
+```
+
+
+# Ekspor Karet data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.karet)
+#summary(data.karet)
+#str(data.karet)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+th2019 <- data.karet[,9]
+
+xbar.a <- mean(th2019) # sample mean
+sigma.a <- sd(th2019) # sample standard deviation
+n.a <- length(th2019)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ttable.a <- round(qt(i/2, df = n.a-1, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.a <- ttable.a*(sigma.a/sqrt(n.a))
+ CI.a <- xbar.a + c(-MoE.a, MoE.a) # confidence interval
+ print(data.frame("ttable" = ttable.a, "CI" = round(CI.a, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \le 300juta$$
+$$H_1: \mu > 300juta$$
+
+```{r}
+#Using normal distribution
+mu0.a <- 300 #dalam juta US$ 
+df <- n.a-1
+for (i in alpha){
+ ttable.a <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+ thit.a <- (xbar.a - mu0.a)/(sigma.a/sqrt(n.a)) # test statistic
+ p.value.a <- 1-round(pt(thit.a, df),10)
+ print(data.frame("t-hit" = round(thit.a, 4), "t-table" = ttable.a, "p-value" = p.value.a))
+ 
+ decision <-
+  if (p.value.a < i | thit.a >= ttable.a) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 1 Population Proportion
+
+$$H_0: p \ge 20\%$$
+$$H_1: p < 20\%$$
+
+```{r}
+prop <- 0.2 
+x <- 690.7
+na <- sum(th2019) 
+p.hat <- x/na
+
+for (i in alpha){
+t.alfa <- round(qt(i, df, lower.tail = FALSE), 2)
+thit = (p.hat - prop)/sqrt(prop*(1-prop)/na) 
+p.valuea <- round(pt(thit, df),10)
+print(data.frame("t-hit" = round(thit, 4), "t-table" = t.alfa, "p-value" = p.valuea))
+
+decision4 <-
+  if (p.valuea < i & thit <= -t.alfa) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 1 Population Varian
+
+$$H_0: \sigma^2 \le 300juta$$
+$$H_1: \sigma^2 > 300juta$$
+
+```{r}
+for (i in alpha){
+var.pop <- 300 
+var.sam <- sigma.a^2
+
+z.alfa3 <- round(qchisq(i, df, lower.tail = FALSE), 2)
+chis = round(((n.a - 1)*var.sam/var.pop), 4) 
+p.value <- 1-round(pchisq(chis, df, lower.tail = FALSE),4)
+print(data.frame("chi-score" = chis, "chi-table" = z.alfa3, "p-value" = p.value))
+
+decision <-
+  if (p.value < i & chis >= z.alfa3) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 = 0$$
+$$H_1: \mu_1 - \mu_2 \neq 0$$
+
+```{r}
+mu0 <- 0
+
+n1 = n2 = n.a
+x1_bar <- mean(data.karet$X2014) #tahun 2014
+x2_bar <- mean(data.karet$X2019) #tahun 2019
+var1 <- var(data.karet$X2014) 
+var2 <- var(data.karet$X2019)
+
+mu0 = 0
+
+df <- n1+n2-2
+sp <- (((n1-1)*var1) + ((n2-1)*var2)) / df
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt(sp*((1/n1)+(1/n2)))
+p_value = 2*round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i/2, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & abs(thit.2pop) >= ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+
+# Ekspor Batu Bara data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.karet)
+#summary(data.karet)
+#str(data.bara)
+data.bara[,9] <- as.numeric(gsub(",","",data.bara[,9]))
+data.bara[,2] <- as.numeric(gsub(",","",data.bara[,2]))
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+thn2019 <- data.bara[,9]
+thn2012 <- data.bara[,2]
+
+xbar.b <- mean(thn2019) # sample mean
+sigma.b <- sd(thn2019) # sample standard deviation
+n.b <- length(thn2019)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ttable.b <- round(qt(i/2, df = n.b-1, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.b <- ttable.b*(sigma.b/sqrt(n.b))
+ CI.b <- xbar.b + c(-MoE.b, MoE.b) # confidence interval
+ print(data.frame("ttable" = ttable.b, "CI" = round(CI.b, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu = 200,000ton$$
+$$H_1: \mu \neq 200,000ton$$
+
+```{r}
+#Using normal distribution
+mu0.b <- 200000 #dalam juta US$ 
+
+for (i in alpha){
+ ttable.b <- round(qt(i/2, df = n.b-1, lower.tail = FALSE), 4) # critical value
+ thit.b <- (xbar.b - mu0.b)/(sigma.b/sqrt(n.b)) # test statistic
+ p.value.b <- 2*round(pt(thit.b, df = n.b-1),10)
+ print(data.frame("t-hit" = round(thit.b, 4), "t-table" = ttable.b, "p-value" = p.value.b))
+ 
+ decision <-
+  if (p.value.a < i | abs(thit.b) >= ttable.b) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 1 Population Proportion
+$$H_0: p = 35\%$$
+$$H_1: p \neq 35\%$$
+
+```{r}
+prop <- 0.35 
+x <- 121692.5
+nb <- sum(thn2019) 
+p.hat <- x/nb
+
+for (i in alpha){
+t.alfa2 <- round(qt(i/2, df = n.b-1, lower.tail = FALSE), 2)
+t4 = (p.hat - prop)/sqrt(prop*(1-prop)/n.b) 
+p.valueb <- 2*round(pt(t4, df = n.b),10)
+print(data.frame("t-hit" = round(t4, 4), "t-table" = t.alfa2, "p-value" = p.valueb))
+
+decision4 <-
+  if (p.valueb < i & abs(t4) >= t.alfa2) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \le 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+```{r}
+mu0 <- 0
+
+n1 = n2 = n.b
+x1_bar <- mean(thn2019) #tahun 2014
+x2_bar <- mean(thn2012) #tahun 2019
+var1 <- var(thn2012) 
+var2 <- var(thn2019)
+
+df <- n1+n2-2
+sp <- (((n1-1)*var1) + ((n2-1)*var2)) / df
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt(sp*((1/n1)+(1/n2)))
+p_value = 1-round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop >= ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 = 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 \neq 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = 2*round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))            
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+# Tingkat Pengangguran Terbuka data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.tpt)
+#summary(data.tpt)
+str(data.tpt)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+tpt2019 <- data.tpt[,5]
+jumlah2019 <- data.tpt[,4]
+
+tpt2018 <- data.tpt[,3]
+jumlah2018 <- data.tpt[,2]
+
+xbar.c <- mean(tpt2019) # sample mean
+sigma.c <- sd(tpt2019) # sample standard deviation
+n.c <- length(tpt2019)
+
+xbar.c2 <- mean(jumlah2019) # sample mean
+sigma.c2 <- sd(jumlah2019) # sample standard deviation
+n.c2 <- length(jumlah2019)
+```
+
+```{r}
+#TPT 2019
+#Using normal distribution
+for (i in alpha){
+ ttable.c <- round(qt(i/2, df = n.c-1, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.c <- ttable.c*(sigma.c/sqrt(n.c))
+ CI.c <- xbar.c + c(-MoE.c, MoE.c) # confidence interval
+ print(data.frame("ttable" = ttable.c, "CI" = round(CI.c, 4)))
+}
+```
+```{r}
+#JUMLAH PENGANGGURAN 2019
+#Using normal distribution
+for (i in alpha){
+ ttable.c2 <- round(qt(i/2, df = n.c2-1, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.c2 <- ttable.c2*(sigma.c2/sqrt(n.c2))
+ CI.c2 <- xbar.c2 + c(-MoE.c2, MoE.c2) # confidence interval
+ print(data.frame("ttable" = ttable.c2, "CI" = round(CI.c2, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population Proportion
+$$H_0: p = 4\%$$
+$$H_1: p \neq 4\%$$
+
+```{r}
+#TPT 2019
+prop <- 0.04 
+x <- 3.92
+nc <- sum(tpt2019) 
+p.hat <- x/nc
+
+for (i in alpha){
+t.alfa2 <- round(qt(i/2, df = n.c-1, lower.tail = FALSE), 2)
+t4 = (p.hat - prop)/sqrt(prop*(1-prop)/n.c) 
+p.valuec <- 2*round(pt(t4, df = n.c),10)
+print(data.frame("t-hit" = round(t4, 4), "t-table" = t.alfa2, "p-value" = p.valuec))
+
+decision4 <-
+  if (p.valuec < i & abs(t4) >= t.alfa2) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+```{r}
+#JUMLAH PENGANGGURAN 2019
+prop <- 0.04 
+x <- 843754
+nc2 <- sum(jumlah2019) 
+p.hat <- x/nc2
+
+for (i in alpha){
+t.alfa2 <- round(qt(i/2, df = n.c2-1, lower.tail = FALSE), 2)
+t4 = (p.hat - prop)/sqrt(prop*(1-prop)/n.c2) 
+p.valuec2 <- 2*round(pt(t4, df = n.c2),10)
+print(data.frame("t-hit" = round(t4, 4), "t-table" = t.alfa2, "p-value" = p.valuec2))
+
+decision4 <-
+  if (p.valuec2 < i & abs(t4) >= t.alfa2) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \ge 0$$
+$$H_1: \mu_1 - \mu_2 < 0$$
+
+```{r}
+#TPT 
+mu0 <- 0
+
+n1c = n2c = n.c
+x1_barc <- mean(tpt2019) #tahun 2019
+x2_barc <- mean(tpt2018) #tahun 2018
+var1c <- var(tpt2019) 
+var2c <- var(tpt2018)
+
+dfc <- n1c+n2c-2
+sp <- (((n1c-1)*var1c) + ((n2c-1)*var2c)) / dfc
+  
+thit.2pop = (x1_barc - x2_barc - mu0)/sqrt(sp*((1/n1c)+(1/n2c)))
+p_value = round(pt(thit.2pop, dfc),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, dfc, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop <= -ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+```{r}
+#JUMLAH PENGANGGURAN 
+mu0 <- 0
+
+n1c2 = n2c2 = n.c2
+x1_barc2 <- mean(jumlah2019) #tahun 2019
+x2_barc2 <- mean(jumlah2018) #tahun 2018
+var1c2 <- var(jumlah2019) 
+var2c2 <- var(jumlah2018)
+
+dfc2 <- n1c2+n2c2-2
+sp <- (((n1c2-1)*var1c2) + ((n2c2-1)*var2c2)) / dfc2
+  
+thit.2pop = (x1_barc2 - x2_barc2 - mu0)/sqrt(sp*((1/n1c2)+(1/n2c2)))
+p_value = round(pt(thit.2pop, dfc2),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, dfc2, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop <= -ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 = 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 \neq 0$$
+
+```{r}
+#TPT
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2c-1, n1c-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1c-1, n2c-1), 4) #right-hand critical point
+
+f_score = var1c/var2c
+p_value = 2*round(pf(f_score, n1c-1, n2c-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))            
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+```{r}
+#JUMLAH PENGANGGURAN
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2c2-1, n1c2-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1c2-1, n2c2-1), 4) #right-hand critical point
+
+f_score = var1c2/var2c2
+p_value = 2*round(pf(f_score, n1c2-1, n2c2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))            
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 \le 1\%$$
+$$H_1: p_1 - p2 > 1\%$$
+
+```{r}
+#TPT
+n1c = n2c = nc
+x1 <- 3.92 #TAHUN 2019
+n1cc <- sum(tpt2019) 
+x2 <- 3.99 #TAHUN 2018
+n2cc <- sum(tpt2018) 
+
+p1_hat = x1/n1cc; p2_hat = x2/n2cc
+p_hat = (x1 + x2)/(n1cc + n2cc)
+p0 <- 0.01
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1c + 1/n2c)), 4)
+p_value = 1-round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))          
+
+  if (p_value < i | z_hit >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+```{r}
+#JUMLAH PENGANGGURAN
+n1c = n2c = nc
+x1 <- 843754 #TAHUN 2019
+n1cc <- sum(jumlah2019) 
+x2 <- 850474 #TAHUN 2018
+n2cc <- sum(jumlah2018) 
+
+p1_hat = x1/n1cc; p2_hat = x2/n2cc
+p_hat = (x1 + x2)/(n1cc + n2cc)
+p0 <- 0.01
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1c + 1/n2c)), 4)
+p_value = 1-round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))          
+
+  if (p_value < i | z_hit >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+
+# Heart failure clinical records
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.heart)
+#summary(data.heart)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+frac.eject <- data.heart[,5]
+
+xbar.d <- mean(frac.eject) # sample mean
+sigma.d <- sd(frac.eject) # sample standard deviation
+n.d <- length(frac.eject)
+```
+
+```{r}
+#Using t-student distribution
+for (i in alpha){
+ ttable.d <- round(qt(i/2, (n.d-1), lower.tail = FALSE), 4) # critical value
+ 
+ MoE.d <- ttable.d*(sigma.d/sqrt(n.d))
+ CI.d <- xbar.d + c(-MoE.d, MoE.d) # confidence interval
+ print(data.frame("ttable" = ttable.d, "CI" = round(CI.d,4)))
+}
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.d <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.d <- ztable.d*(sigma.d/sqrt(n.d))
+ CI.d <- xbar.d + c(-MoE.d, MoE.d) # confidence interval
+ print(data.frame("ztable" = ztable.d, "CI" = round(CI.d,4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+$$H_0: \mu \ge 50$$
+$$H_1: \mu < 50$$
+```{r}
+#Using t-student distribution
+mu0.d <- 50
+
+for (i in alpha){
+ ttable.d <- round(qt(i, (n.d-1), lower.tail = FALSE), 4) # critical value
+ thit.d <- (xbar.d - mu0.d)/(sigma.d/sqrt(n.d)) # test statistic
+ p.value.d <- round(pt(thit.d, n.d-1),10)
+ print(data.frame("t-hit" = round(thit.d, 4), "t-table" = ttable.d, "p-value" = p.value.d))
+ 
+ decision <-
+  if (p.value.d < i & thit.d <= -ttable.d) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.d <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.d <- (xbar.d - mu0.d)/(sigma.d/sqrt(n.d)) # test statistic
+ p.value.d <- round(pnorm(zhit.d),10)
+ print(data.frame("z-hit" = round(zhit.d, 4), "z-table" = ztable.d, "p-value" = p.value.d))
+ 
+ decision <-
+  if (p.value.d < i & zhit.d <= -ztable.d) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 = 0$$
+$$H_1: \mu_1 - \mu_2 \neq 0$$
+```{r}
+#filter the data
+dead <- data.heart %>% filter(DEATH_EVENT == 1) 
+alive <- data.heart %>% filter(DEATH_EVENT == 0)
+
+n1 = length(dead$DEATH_EVENT); n2 = length(alive$DEATH_EVENT)
+x1_bar = mean(dead$ejection_fraction) 
+x2_bar = mean(alive$ejection_fraction)
+var1 = var(dead$ejection_fraction) 
+var2 = var(alive$ejection_fraction)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = 2*round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i/2, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & abs(thit.2pop) >= ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 = 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 \neq 0$$
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = 2*round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 \le 0$$
+$$H_1: p_1 - p2 > 0$$
+```{r}
+male <- data.heart %>% filter(sex == 1)
+female <- data.heart %>% filter(sex == 0)
+n1 = length(male$sex); n2 = length(female$sex)
+
+x1 <- filter(male, between(male$age, 50, 65)); x1 <- length(x1$sex)
+x2 <- filter(female, between(female$age, 50, 65)); x2 <- length(x2$sex)
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = 1-round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | z_hit >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+# Student performance math data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.heart)
+#summary(data.estate)
+#str(data.math)
+#View(data.math)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+fin.grade <- data.math[,33]
+
+xbar.e <- mean(fin.grade) # sample mean
+sigma.e <- sd(fin.grade) # sample standard deviation
+n.e <- length(fin.grade)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.e <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.e <- ztable.e*(sigma.e/sqrt(n.e))
+ CI.e <- xbar.e + c(-MoE.e, MoE.e) # confidence interval
+ print(data.frame("ztable" = ztable.e, "CI" = round(CI.e, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \ge 10$$
+$$H_1: \mu < 10$$
+
+```{r}
+#Using normal distribution
+mu0.e <- 10
+
+for (i in alpha){
+ ztable.e <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.e <- (xbar.e - mu0.e)/(sigma.e/sqrt(n.e)) # test statistic
+ p.value.e <- round(pnorm(zhit.e),10)
+ print(data.frame("z-hit" = round(zhit.e, 4), "z-table" = ztable.e, "p-value" = p.value.e))
+ 
+ decision <-
+  if (p.value.e < i | zhit.e <= -ztable.e) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \ge 0$$
+$$H_1: \mu_1 - \mu_2 < 0$$
+
+```{r}
+#filter the data
+male <- data.math %>% filter(sex == "M") 
+female <- data.math %>% filter(sex == "F")
+
+n1 = length(male$sex); n2 = length(female$sex)
+x1_bar = mean(male$G3) 
+x2_bar = mean(female$G3)
+var1 = var(male$G3) 
+var2 = var(female$G3)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i | thit.2pop <= -ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 \le 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 > 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = 1-round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 = 0$$
+$$H_1: p_1 - p2 \neq 0$$
+
+```{r}
+n1 = length(male$sex); n2 = length(female$sex)
+x1 <- male %>% filter(G3 >= 12); x1 <- length(x1$G3)
+x2 <- female %>% filter(G3 >= 12); x2 <- length(x2$G3)
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = 2*round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i/2), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | abs(z_hit) >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+# Early stage diabetes risk prediction data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.diabet)
+#summary(data.diabet)
+#str(data.diabet)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+age <- data.diabet[,1]
+
+xbar.f <- mean(age) # sample mean
+sigma.f <- sd(age) # sample standard deviation
+n.f <- length(age)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.f <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.f <- ztable.f*(sigma.f/sqrt(n.f))
+ CI.f <- xbar.f + c(-MoE.f, MoE.f) # confidence interval
+ print(data.frame("ztable" = ztable.f, "CI" = round(CI.f, 4)))
+}
+```
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \ge 53$$
+$$H_1: \mu < 53$$
+
+```{r}
+#Using normal distribution
+mu0.f <- 53
+
+for (i in alpha){
+ ztable.f <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.f <- (xbar.f - mu0.f)/(sigma.f/sqrt(n.f)) # test statistic
+ p.value.f <- round(pnorm(zhit.f),10)
+ print(data.frame("z-hit" = round(zhit.f, 4), "z-table" = ztable.f, "p-value" = p.value.f))
+ 
+ decision <-
+  if (p.value.f < i | zhit.f <= -ztable.f) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \le 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+```{r}
+#filter the data
+pos <- data.diabet %>% filter(class == "Positive") 
+neg <- data.diabet %>% filter(class == "Negative") 
+
+n1 = length(pos$class); n2 = length(neg$class)
+x1_bar = mean(pos$Age) 
+x2_bar = mean(neg$Age)
+var1 = var(pos$Age) 
+var2 = var(neg$Age)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = 1-round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop >= ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 \ge 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 < 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 \le 0$$
+$$H_1: p_1 - p2 > 0$$
+
+```{r}
+n1 = length(pos$Age); n2 = length(pos$Age)
+x1 <- pos %>% filter(Age >= 50); x1 <- length(x1[,1])
+x2 <- neg %>% filter(Age >= 50); x2 <- length(x2[,1])
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = 1-round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | z_hit >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+# Real estate valuation data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.heart)
+#summary(data.estate)
+#str(data.estate)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+house.price <- data.estate[,8]
+
+xbar.g <- mean(house.price) # sample mean
+sigma.g <- sd(house.price) # sample standard deviation
+n.g <- length(house.price)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.g <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.g <- ztable.g*(sigma.g/sqrt(n.g))
+ CI.g <- xbar.g + c(-MoE.g, MoE.g) # confidence interval
+ print(data.frame("ztable" = ztable.g, "CI" = round(CI.g, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \le 35$$
+$$H_1: \mu > 35$$
+
+```{r}
+#Using normal distribution
+mu0.g <- 35
+
+for (i in alpha){
+ ztable.g <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.g <- (xbar.g - mu0.g)/(sigma.g/sqrt(n.g)) # test statistic
+ p.value.g <- 1-round(pnorm(zhit.g),10)
+ print(data.frame("z-hit" = round(zhit.g, 4), "z-table" = ztable.g, "p-value" = p.value.g))
+ 
+ decision <-
+  if (p.value.g < i | zhit.g >= ztable.g) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \le 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+```{r}
+#filter the data
+more5 <- data.estate %>% filter(X4.number.of.convenience.stores > 5) 
+less5 <- data.estate %>% filter(X4.number.of.convenience.stores <= 5)
+
+n1 = length(more5$X4.number.of.convenience.stores); n2 = length(less5$X4.number.of.convenience.stores)
+x1_bar = mean(more5$Y.house.price.of.unit.area) 
+x2_bar = mean(less5$Y.house.price.of.unit.area)
+var1 = var(more5$Y.house.price.of.unit.area) 
+var2 = var(less5$Y.house.price.of.unit.area)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = 1-round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop >= ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 = 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 \neq 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = 2*round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 \ge 0$$
+$$H_1: p_1 - p2 < 0$$
+
+```{r}
+year12 <- data.estate %>% filter(X1.transaction.date < 2013)
+year13 <- data.estate %>% filter(X1.transaction.date < 2014)
+
+n1 = length(year12$X1.transaction.date); n2 = length(year13$X1.transaction.date)
+x1 <- year12 %>% filter(Y.house.price.of.unit.area > 30); x1 <- length(x1$Y.house.price.of.unit.area)
+x2 <- year13 %>% filter(Y.house.price.of.unit.area > 30); x2 <- length(x2$Y.house.price.of.unit.area)
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | z_hit <= -z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+
+# HR Case Study data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.hr)
+#summary(data.hr)
+#str(data.hr)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+salary <- data.hr[,4]
+
+xbar.h <- mean(salary) # sample mean
+sigma.h <- sd(salary) # sample standard deviation
+n.h <- length(salary)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.h <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.h <- ztable.h*(sigma.h/sqrt(n.h))
+ CI.h <- xbar.h + c(-MoE.h, MoE.h) # confidence interval
+ print(data.frame("ztable" = ztable.h, "CI" = round(CI.h, 4)))
+}
+```
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \le 698,000$$
+$$H_1: \mu > 698,000$$
+
+```{r}
+#Using normal distribution
+mu0.h <- 698000
+
+for (i in alpha){
+ ztable.h <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.h <- (xbar.h - mu0.h)/(sigma.h/sqrt(n.h)) # test statistic
+ p.value.h <- 1-round(pnorm(zhit.h),10)
+ print(data.frame("z-hit" = round(zhit.h, 4), "z-table" = ztable.h, "p-value" = p.value.h))
+ 
+ decision <-
+  if (p.value.h < i | zhit.h >= ztable.h) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \ge 0$$
+$$H_1: \mu_1 - \mu_2 < 0$$
+
+```{r}
+#filter the data
+delhi <- data.hr %>% filter(Location == "New Delhi") 
+mumbai <- data.hr %>% filter(Location == "Mumbai")
+
+n1 = length(delhi$Location); n2 = length(mumbai$Location)
+x1_bar = mean(delhi$Annual.Salary) 
+x2_bar = mean(mumbai$Annual.Salary)
+var1 = var(delhi$Annual.Salary) 
+var2 = var(mumbai$Annual.Salary)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop <= -ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 = 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 \neq 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = 2*round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 \le 0$$
+$$H_1: p_1 - p2 > 0$$
+
+```{r}
+n1 = length(delhi$Location); n2 = length(mumbai$Location)
+x1 <- delhi %>% filter(Annual.Salary < 600000); x1 <- length(x1$Annual.Salary)
+x2 <- mumbai %>% filter(Annual.Salary < 600000); x2 <- length(x2$Annual.Salary)
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = 1-round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | z_hit >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+# US Health Insurance data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.insurance)
+#summary(data.insurance)
+#str(data.insurance)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+charge <- data.insurance[,7]
+
+xbar.r <- mean(charge) # sample mean
+sigma.r <- sd(charge) # sample standard deviation
+n.r <- length(charge)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.r <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.r <- ztable.r*(sigma.r/sqrt(n.r))
+ CI.r <- xbar.r + c(-MoE.r, MoE.r) # confidence interval
+ print(data.frame("ztable" = ztable.r, "CI" = round(CI.r, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \ge 10,000$$
+$$H_1: \mu < 10,000$$
+
+```{r}
+#Using normal distribution
+mu0.r <- 10000
+
+for (i in alpha){
+ ztable.r <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.r <- (xbar.r - mu0.r)/(sigma.r/sqrt(n.r)) # test statistic
+ p.value.r <- round(pnorm(zhit.r),10)
+ print(data.frame("z-hit" = round(zhit.r, 4), "z-table" = ztable.r, "p-value" = p.value.r))
+ 
+ decision <-
+  if (p.value.r < i | zhit.r <= -ztable.r) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \ge 0$$
+$$H_1: \mu_1 - \mu_2 < 0$$
+
+```{r}
+#filter the data
+nonsmoker <- data.insurance %>% filter(smoker == "no") 
+smoker <- data.insurance %>% filter(smoker == "yes") 
+
+n1 = length(nonsmoker$smoker); n2 = length(smoker$smoker)
+x1_bar = mean(nonsmoker$charges) 
+x2_bar = mean(smoker$charges)
+var1 = var(nonsmoker$charges) 
+var2 = var(smoker$charges)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop <= -ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 = 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 \neq 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = 2*round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 \le 0$$
+$$H_1: p_1 - p2 > 0$$
+
+```{r}
+northeast <- data.insurance %>% filter(region == "northeast")
+southeast <- data.insurance %>% filter(region == "southeast")
+
+n1 = length(northeast$region); n2 = length(southeast$region)
+x1 <- northeast %>% filter(charges > 8000); x1 <- length(x1$charges)
+x2 <- southeast %>% filter(charges > 8000); x2 <- length(x2$charges)
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = 1-round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | z_hit >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+# Supermarket sales data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.heart)
+#summary(data.estate)
+#str(data.sales)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+quantity <- data.sales[,8]
+
+xbar.j <- mean(quantity) # sample mean
+sigma.j <- sd(quantity) # sample standard deviation
+n.j <- length(quantity)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.j <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.j <- ztable.j*(sigma.j/sqrt(n.j))
+ CI.j <- xbar.j + c(-MoE.j, MoE.j) # confidence interval
+ print(data.frame("ztable" = ztable.j, "CI" = round(CI.j, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \ge 7$$
+$$H_1: \mu < 7$$
+
+```{r}
+#Using normal distribution
+mu0.j <- 7
+
+for (i in alpha){
+ ztable.j <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.j <- (xbar.j - mu0.j)/(sigma.j/sqrt(n.j)) # test statistic
+ p.value.j <- round(pnorm(zhit.j),10)
+ print(data.frame("z-hit" = round(zhit.j, 4), "z-table" = ztable.j, "p-value" = p.value.j))
+ 
+ decision <-
+  if (p.value.j < i | zhit.j <= -ztable.j) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \le 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+```{r}
+#filter the data
+member <- data.sales %>% filter(Customer.type == "Member") 
+normal <- data.sales %>% filter(Customer.type == "Normal")
+
+n1 = length(member$Customer.type); n2 = length(normal$Customer.type)
+x1_bar = mean(member$Quantity) 
+x2_bar = mean(normal$Quantity)
+var1 = var(member$Quantity) 
+var2 = var(normal$Quantity)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = 1-round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop >= ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 = 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 \neq 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i/2, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i/2, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = 2*round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 \ge 0$$
+$$H_1: p_1 - p2 < 0$$
+
+```{r}
+n1 = length(member$Customer.type); n2 = length(normal$Customer.type)
+x1 <- member %>% filter(Quantity <= 3); x1 <- length(x1$Quantity)
+x2 <- normal %>% filter(Quantity <= 3); x2 <- length(x2$Quantity)
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | z_hit <= -z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+# Red Wine Quality data set
+## Descriptive Stat
+
+```{r}
+#destat <- stat.desc(data.heart)
+#summary(data.estate)
+#str(data.wine)
+```
+
+## Inferential Stat
+
+### Confidence Interval
+```{r}
+alcohol <- data.wine[,11]
+
+xbar.k <- mean(alcohol) # sample mean
+sigma.k <- sd(alcohol) # sample standard deviation
+n.k <- length(alcohol)
+```
+
+```{r}
+#Using normal distribution
+for (i in alpha){
+ ztable.k <- round(qnorm(i/2, lower.tail = FALSE), 4) # critical value
+ 
+ MoE.k <- ztable.k*(sigma.k/sqrt(n.k))
+ CI.k <- xbar.k + c(-MoE.k, MoE.k) # confidence interval
+ print(data.frame("ztable" = ztable.k, "CI" = round(CI.k, 4)))
+}
+```
+
+### Hypothesis Testing 1 Population
+
+$$H_0: \mu \le 10.6$$
+$$H_1: \mu > 10.6$$
+
+```{r}
+#Using normal distribution
+mu0.k <- 10.6
+
+for (i in alpha){
+ ztable.k <- round(qnorm(i, lower.tail = FALSE), 4) # critical value
+ zhit.k <- (xbar.k - mu0.k)/(sigma.k/sqrt(n.k)) # test statistic
+ p.value.k <- 1-round(pnorm(zhit.k),10)
+ print(data.frame("z-hit" = round(zhit.k, 4), "z-table" = ztable.k, "p-value" = p.value.k))
+ 
+ decision <-
+  if (p.value.k < i | zhit.k >= ztable.k) {
+  print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Mean
+
+$$H_0: \mu_1 - \mu_2 \le 0$$
+$$H_1: \mu_1 - \mu_2 > 0$$
+
+```{r}
+#filter the data
+more5 <- data.wine %>% filter(quality > 5) 
+less5 <- data.wine %>% filter(quality <= 5) 
+
+n1 = length(more5$quality); n2 = length(less5$quality)
+x1_bar = mean(more5$alcohol) 
+x2_bar = mean(less5$alcohol)
+var1 = var(more5$alcohol) 
+var2 = var(less5$alcohol)
+
+mu0 = 0
+
+df <- (var1/n1 + var2/n2)^2 / ((var1/n1)^2/(n1-1) + (var2/n2)^2/(n2-1)) 
+  
+thit.2pop = (x1_bar - x2_bar - mu0)/sqrt((var1/n1) + (var2/n2))
+p_value = 1-round(pt(thit.2pop, df),4)
+
+for (i in alpha){
+  ttable <- round(qt(i, df, lower.tail = FALSE), 4) # critical value
+  print(data.frame("t-hit" = round(thit.2pop, 4), "ttable" = ttable, "p-value" = p_value))
+ 
+  if (p_value < i & thit.2pop >= ttable) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Varian
+
+$$H_0: \sigma_1^2 - \sigma_2^2 \ge 0$$
+$$H_1: \sigma_1^2 - \sigma_2^2 < 0$$
+
+```{r}
+for (i in alpha){
+f_table.l = round(1/qf(1-i, n2-1, n1-1), 4) #left-hand critical point
+f_table.r = round(1/qf(i, n1-1, n2-1), 4) #right-hand critical point
+
+f_score = var1/var2
+p_value = round(pf(f_score, n1-1, n2-1, lower.tail = FALSE), 4)
+
+print(data.frame("f-score" = f_score, "f-table.left" = f_table.l, "f-table.right" = f_table.r, "p-value" = p_value))			
+
+  if (p_value < i | f_score < f_table.l | f_score > f_table.r) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
+
+### Hypothesis Testing 2 Population Proportion
+
+$$H_0: p_1 - p2 = 0$$
+$$H_1: p_1 - p2 \ne 0$$
+
+```{r}
+n1 = length(more5$quality); n2 = length(less5$quality)
+x1 <- more5 %>% filter(alcohol > 10); x1 <- length(x1$alcohol)
+x2 <- less5 %>% filter(alcohol > 10); x2 <- length(x2$alcohol)
+
+p1_hat = x1/n1; p2_hat = x2/n2
+p_hat = (x1 + x2)/(n1 + n2)
+p0 <- 0
+
+z_hit = round((p1_hat - p2_hat - p0)/
+                sqrt(p_hat*(1-p_hat)*(1/n1 + 1/n2)), 4)
+p_value = 2*round(pnorm(z_hit, lower.tail = FALSE),4)
+
+for (i in alpha){
+z_table = round(qnorm(1-i/2), 4) 
+
+print(data.frame("z-score" = z_hit, "z-table" = z_table, "p-value" = p_value))			
+
+  if (p_value < i | abs(z_hit) >= z_table) {
+    print('Reject H0')
+  } else {
+    print('Fail to reject H0')
+  }
+}
+```
